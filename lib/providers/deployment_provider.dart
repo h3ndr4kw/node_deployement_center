@@ -1,7 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:node_deployement/utils/node_builder.dart';
 import '../models/node_model.dart';
+import '../services/config_service.dart';
 
 enum DeploymentMethod { command, file }
+
 enum DeploymentStatus { idle, running, success, failure }
 
 class DeploymentState {
@@ -34,19 +37,25 @@ class DeploymentState {
   }
 }
 
-
 class DeploymentNotifier extends Notifier<DeploymentState> {
+  Future<void> loadNodes() async {
+    try {
+      final content = await loadNodesConfig();
+      final nodeBuilder = NodeBuilder(content: content);
+      state = state.copyWith(nodes: nodeBuilder.getNodes());
+    } catch (e) {
+      // Handle error appropriately, maybe update status to failure or log it
+      print('Error loading nodes: $e');
+    }
+  }
+
   @override
   DeploymentState build() {
+    // Load nodes asynchronously
+    Future.microtask(() => loadNodes());
+
     return DeploymentState(
-      nodes: [
-        const Node(id: '1', name: 'node-prod-01', ip: '192.168.1.101', isOnline: true),
-        const Node(id: '2', name: 'node-prod-02', ip: '192.168.1.102', isOnline: true),
-        const Node(id: '3', name: 'node-staging-01', ip: '192.168.1.201', isOnline: true),
-        const Node(id: '4', name: 'node-staging-02', ip: '192.168.1.202', isOnline: false),
-        const Node(id: '5', name: 'node-dev-01', ip: '192.168.1.301', isOnline: true),
-        const Node(id: '6', name: 'node-dev-02', ip: '192.168.1.302', isOnline: true),
-      ],
+      nodes: [],
       method: DeploymentMethod.command,
       inputCommand: 'show running-config | nomore',
       status: DeploymentStatus.idle,
@@ -66,13 +75,32 @@ class DeploymentNotifier extends Notifier<DeploymentState> {
 
   void selectAll() {
     state = state.copyWith(
-      nodes: state.nodes.map((node) => node.copyWith(isSelected: true)).toList(),
+      nodes: state.nodes
+          .map((node) => node.copyWith(isSelected: true))
+          .toList(),
+    );
+  }
+
+  void selectNodesByArea(NodeArea area) {
+    final areaNodes = state.nodes.where((n) => n.area == area).toList();
+    final allSelected = areaNodes.every((n) => n.isSelected);
+    final newSelectionState = !allSelected;
+
+    state = state.copyWith(
+      nodes: state.nodes.map((node) {
+        if (node.area == area) {
+          return node.copyWith(isSelected: newSelectionState);
+        }
+        return node;
+      }).toList(),
     );
   }
 
   void clearSelection() {
     state = state.copyWith(
-      nodes: state.nodes.map((node) => node.copyWith(isSelected: false)).toList(),
+      nodes: state.nodes
+          .map((node) => node.copyWith(isSelected: false))
+          .toList(),
     );
   }
 
@@ -91,13 +119,14 @@ class DeploymentNotifier extends Notifier<DeploymentState> {
     state = state.copyWith(status: DeploymentStatus.running);
     await Future.delayed(const Duration(seconds: 2)); // Mock execution
     state = state.copyWith(status: DeploymentStatus.success);
-    
+
     // Reset to idle after a moment
     await Future.delayed(const Duration(seconds: 2));
     state = state.copyWith(status: DeploymentStatus.idle);
   }
 }
 
-final deploymentProvider = NotifierProvider<DeploymentNotifier, DeploymentState>(() {
-  return DeploymentNotifier();
-});
+final deploymentProvider =
+    NotifierProvider<DeploymentNotifier, DeploymentState>(() {
+      return DeploymentNotifier();
+    });

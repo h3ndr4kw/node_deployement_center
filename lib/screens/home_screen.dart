@@ -36,13 +36,15 @@ class HomeScreen extends ConsumerWidget {
                         style: GoogleFonts.inter(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
-                          color: Theme.of(context).textTheme.displayLarge?.color,
+                          color: Theme.of(
+                            context,
+                          ).textTheme.displayLarge?.color,
                           letterSpacing: -0.5,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Deploy file, and commands to multiple nodes simultaneously',
+                        'Deploy file or command to selected nodes simultaneously',
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           color: Theme.of(context).textTheme.bodyMedium?.color,
@@ -56,7 +58,9 @@ class HomeScreen extends ConsumerWidget {
                     ref.read(themeProvider.notifier).toggleTheme();
                   },
                   icon: Icon(
-                    themeMode == ThemeMode.dark ? LucideIcons.sun : LucideIcons.moon,
+                    themeMode == ThemeMode.dark
+                        ? LucideIcons.sun
+                        : LucideIcons.moon,
                     color: Theme.of(context).textTheme.bodyMedium?.color,
                   ),
                 ),
@@ -113,7 +117,11 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildExecutionCard(BuildContext context, DeploymentState state, DeploymentNotifier notifier) {
+  Widget _buildExecutionCard(
+    BuildContext context,
+    DeploymentState state,
+    DeploymentNotifier notifier,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       decoration: BoxDecoration(
@@ -129,7 +137,11 @@ class HomeScreen extends ConsumerWidget {
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(LucideIcons.server, color: Theme.of(context).textTheme.bodyMedium?.color, size: 24),
+            child: Icon(
+              LucideIcons.server,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+              size: 24,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -155,22 +167,34 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
           ElevatedButton.icon(
-            onPressed: state.selectedCount > 0 && state.status != DeploymentStatus.running
+            onPressed:
+                state.selectedCount > 0 &&
+                    state.status != DeploymentStatus.running
                 ? notifier.executeDeployment
                 : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6B7280), // Greyish button as per screenshot
+              backgroundColor: Colors.lightGreen, // Light green as requested
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
               elevation: 0,
             ),
             icon: state.status == DeploymentStatus.running
                 ? const SizedBox(
-                    width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Icon(LucideIcons.play, size: 16),
             label: Text(
-              state.status == DeploymentStatus.running ? 'Deploying...' : 'Execute Deployment',
+              state.status == DeploymentStatus.running
+                  ? 'Deploying...'
+                  : 'Execute Deployment',
               style: GoogleFonts.inter(fontWeight: FontWeight.w600),
             ),
           ),

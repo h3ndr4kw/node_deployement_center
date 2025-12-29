@@ -32,28 +32,30 @@ class MyApp extends ConsumerWidget {
         ),
         cardColor: Colors.white,
         dividerColor: Colors.grey.shade200,
-        textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme).apply(
-          bodyColor: const Color(0xFF1F2937),
-          displayColor: const Color(0xFF111827),
-        ),
+        textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme)
+            .apply(
+              bodyColor: const Color(0xFF1F2937),
+              displayColor: const Color(0xFF111827),
+            ),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF111827),
+        scaffoldBackgroundColor: const Color(
+          0xFF1E1F22,
+        ), // JetBrains Background
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF10B981),
           brightness: Brightness.dark,
-          surface: const Color(0xFF1F2937),
-          onSurface: Colors.white,
-          outline: const Color(0xFF374151),
+          surface: const Color(0xFF2B2D30), // JetBrains Surface
+          onSurface: const Color(0xFFDFE1E5), // JetBrains Text
+          outline: const Color(0xFF4E5155), // JetBrains Border
         ),
-        cardColor: const Color(0xFF1F2937),
-        dividerColor: const Color(0xFF374151),
-        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).apply(
-          bodyColor: Colors.grey.shade300,
-          displayColor: Colors.white,
-        ),
+        cardColor: const Color(0xFF2B2D30),
+        dividerColor: const Color(0xFF43454A),
+        textTheme: GoogleFonts.interTextTheme(
+          ThemeData.dark().textTheme,
+        ).apply(bodyColor: const Color(0xFFBCBEC4), displayColor: Colors.white),
       ),
       home: const HomeScreen(),
     );

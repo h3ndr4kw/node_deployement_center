@@ -49,8 +49,20 @@ class DeploymentInputSection extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                _buildTab(context, DeploymentMethod.command, '>_ Command', state.method, notifier),
-                _buildTab(context, DeploymentMethod.file, 'File', state.method, notifier),
+                _buildTab(
+                  context,
+                  DeploymentMethod.command,
+                  '>_ Command',
+                  state.method,
+                  notifier,
+                ),
+                _buildTab(
+                  context,
+                  DeploymentMethod.file,
+                  'File',
+                  state.method,
+                  notifier,
+                ),
               ],
             ),
           ),
@@ -68,7 +80,8 @@ class DeploymentInputSection extends ConsumerWidget {
             TextField(
               controller: TextEditingController(text: state.inputCommand)
                 ..selection = TextSelection.fromPosition(
-                    TextPosition(offset: state.inputCommand.length)),
+                  TextPosition(offset: state.inputCommand.length),
+                ),
               onChanged: notifier.updateInput,
               style: GoogleFonts.sourceCodePro(
                 fontSize: 14,
@@ -79,7 +92,10 @@ class DeploymentInputSection extends ConsumerWidget {
                 hintStyle: TextStyle(color: theme.hintColor),
                 filled: true,
                 fillColor: theme.cardColor,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(color: theme.dividerColor),
@@ -90,7 +106,10 @@ class DeploymentInputSection extends ConsumerWidget {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.primary,
+                    width: 2,
+                  ),
                 ),
               ),
             ),
@@ -103,18 +122,25 @@ class DeploymentInputSection extends ConsumerWidget {
               ),
             ),
           ] else if (state.method == DeploymentMethod.file) ...[
-             Container(
+            Container(
               height: 120,
               width: double.infinity,
               decoration: BoxDecoration(
                 color: theme.colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: theme.dividerColor, style: BorderStyle.solid),
+                border: Border.all(
+                  color: theme.dividerColor,
+                  style: BorderStyle.solid,
+                ),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(LucideIcons.uploadCloud, size: 32, color: theme.textTheme.bodyMedium?.color),
+                  Icon(
+                    LucideIcons.uploadCloud,
+                    size: 32,
+                    color: theme.textTheme.bodyMedium?.color,
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     'Click to upload or drag and drop',
@@ -125,29 +151,37 @@ class DeploymentInputSection extends ConsumerWidget {
                   ),
                 ],
               ),
-             ),
-          ]
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildTab(BuildContext context, DeploymentMethod method, String label, DeploymentMethod current, DeploymentNotifier notifier) {
+  Widget _buildTab(
+    BuildContext context,
+    DeploymentMethod method,
+    String label,
+    DeploymentMethod current,
+    DeploymentNotifier notifier,
+  ) {
     final bool isSelected = method == current;
     final theme = Theme.of(context);
-    
+
     return Expanded(
       child: GestureDetector(
         onTap: () => notifier.setMethod(method),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? theme.cardColor : Colors.transparent,
+            color: isSelected
+                ? const Color(0xFF007E33)
+                : Colors.transparent, // Darker Green (Adjusted)
             borderRadius: BorderRadius.circular(6),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 2,
                       offset: const Offset(0, 1),
                     ),
@@ -157,14 +191,23 @@ class DeploymentInputSection extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (method == DeploymentMethod.file) Icon(LucideIcons.upload, size: 16, color: theme.textTheme.bodyMedium?.color),
+              if (method == DeploymentMethod.file)
+                Icon(
+                  LucideIcons.upload,
+                  size: 16,
+                  color: isSelected
+                      ? Colors.white
+                      : theme.textTheme.bodyMedium?.color,
+                ),
               if (method != DeploymentMethod.command) const SizedBox(width: 8),
               Text(
                 label,
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: isSelected ? theme.textTheme.displayLarge?.color : theme.textTheme.bodyMedium?.color,
+                  color: isSelected
+                      ? Colors.white
+                      : theme.textTheme.bodyMedium?.color,
                 ),
               ),
             ],
