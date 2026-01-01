@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../providers/deployment_provider.dart';
-import 'node_tile.dart';
+import '../models/node_model.dart';
+import 'area_node_section.dart';
 import 'regional_selector.dart';
 
 class NodeListSection extends ConsumerWidget {
@@ -75,15 +76,21 @@ class NodeListSection extends ConsumerWidget {
           ],
           const SizedBox(height: 24),
           Expanded(
-            child: ListView.builder(
-              itemCount: state.nodes.length,
-              itemBuilder: (context, index) {
-                final node = state.nodes[index];
-                return NodeTile(
-                  node: node,
-                  onTap: () => notifier.toggleSelection(node.id),
-                );
-              },
+            child: SingleChildScrollView(
+              child: Column(
+                children: NodeArea.values.map((area) {
+                  final areaNodes = state.nodes
+                      .where((n) => n.area == area)
+                      .toList();
+                  if (areaNodes.isEmpty) return const SizedBox.shrink();
+
+                  return AreaNodeSection(
+                    title: area.name.toUpperCase(),
+                    nodes: areaNodes,
+                    onToggle: notifier.toggleSelection,
+                  );
+                }).toList(),
+              ),
             ),
           ),
         ],

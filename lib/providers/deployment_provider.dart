@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:node_deployement/utils/node_builder.dart';
 import '../models/node_model.dart';
@@ -11,12 +12,14 @@ class DeploymentState {
   final List<Node> nodes;
   final DeploymentMethod method;
   final String inputCommand;
+  final String? selectedFile;
   final DeploymentStatus status;
 
   DeploymentState({
     required this.nodes,
     required this.method,
     required this.inputCommand,
+    this.selectedFile,
     required this.status,
   });
 
@@ -26,12 +29,14 @@ class DeploymentState {
     List<Node>? nodes,
     DeploymentMethod? method,
     String? inputCommand,
+    String? selectedFile,
     DeploymentStatus? status,
   }) {
     return DeploymentState(
       nodes: nodes ?? this.nodes,
       method: method ?? this.method,
       inputCommand: inputCommand ?? this.inputCommand,
+      selectedFile: selectedFile ?? this.selectedFile,
       status: status ?? this.status,
     );
   }
@@ -57,7 +62,8 @@ class DeploymentNotifier extends Notifier<DeploymentState> {
     return DeploymentState(
       nodes: [],
       method: DeploymentMethod.command,
-      inputCommand: 'show running-config | nomore',
+      inputCommand: '',
+      selectedFile: null,
       status: DeploymentStatus.idle,
     );
   }
@@ -110,6 +116,41 @@ class DeploymentNotifier extends Notifier<DeploymentState> {
 
   void updateInput(String value) {
     state = state.copyWith(inputCommand: value);
+  }
+
+  Future<void> selectFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+      if (result != null) {
+        // On web, path is null, so we use name. On desktop, we can use path or name.
+        // For display purposes, name is sufficient.
+        state = state.copyWith(selectedFile: result.files.single.name);
+      } else {
+        // User canceled the picker
+      }
+    } catch (e) {
+      print('Error picking file: $e');
+    }
+  }
+
+  void clearFile() {
+    state = state.copyWith(
+      selectedFile: null,
+    ); // This effectively clears it, passing null explicitly
+    // Note: copyWith implementation above uses ?? this.selectedFile, so passing null there keeps the old value if the parameter is optional and checked for null.
+    // Wait, my copyWith implementation: selectedFile: selectedFile ?? this.selectedFile
+    // If I pass null, it keeps this.selectedFile.
+    // I need to fix copyWith to allow nullable update or use a different mechanism.
+    // Let's modify copyWith to handle nullable updates correctly or just construct a new state.
+    // Actually, simply constructing new State is cleaner for nullable fields update if copyWith is limited.
+    state = DeploymentState(
+      nodes: state.nodes,
+      method: state.method,
+      inputCommand: state.inputCommand,
+      selectedFile: null,
+      status: state.status,
+    );
   }
 
   Future<void> executeDeployment() async {

@@ -31,7 +31,7 @@ class MyApp extends ConsumerWidget {
           outline: Colors.grey.shade200,
         ),
         cardColor: Colors.white,
-        dividerColor: Colors.grey.shade200,
+        dividerColor: const Color.fromRGBO(238, 238, 238, 1),
         textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme)
             .apply(
               bodyColor: const Color(0xFF1F2937),

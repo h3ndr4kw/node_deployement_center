@@ -1,14 +1,27 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dropzone/flutter_dropzone.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../providers/deployment_provider.dart';
 
-class DeploymentInputSection extends ConsumerWidget {
+class DeploymentInputSection extends ConsumerStatefulWidget {
   const DeploymentInputSection({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DeploymentInputSection> createState() =>
+      _DeploymentInputSectionState();
+}
+
+class _DeploymentInputSectionState
+    extends ConsumerState<DeploymentInputSection> {
+  DropzoneViewController? dropZoneController;
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(deploymentProvider);
     final notifier = ref.read(deploymentProvider.notifier);
     final theme = Theme.of(context);
@@ -23,50 +36,50 @@ class DeploymentInputSection extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Deployment Input',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: theme.textTheme.displayLarge?.color,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Select your preferred deployment method',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: theme.textTheme.bodyMedium?.color,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: theme.dividerColor),
-            ),
-            child: Row(
-              children: [
-                _buildTab(
-                  context,
-                  DeploymentMethod.command,
-                  '>_ Command',
-                  state.method,
-                  notifier,
-                ),
-                _buildTab(
-                  context,
-                  DeploymentMethod.file,
-                  'File',
-                  state.method,
-                  notifier,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
+          // Text(
+          //   'Deployment Input',
+          //   style: GoogleFonts.inter(
+          //     fontSize: 18,
+          //     fontWeight: FontWeight.w700,
+          //     color: theme.textTheme.displayLarge?.color,
+          //   ),
+          // ),
+          // const SizedBox(height: 8),
+          // Text(
+          //   'Select your preferred deployment method',
+          //   style: GoogleFonts.inter(
+          //     fontSize: 14,
+          //     color: theme.textTheme.bodyMedium?.color,
+          //   ),
+          // ),
+          // const SizedBox(height: 24),
+          // Container(
+          //   padding: const EdgeInsets.all(4),
+          //   decoration: BoxDecoration(
+          //     color: theme.colorScheme.surfaceContainerHighest,
+          //     borderRadius: BorderRadius.circular(8),
+          //     border: Border.all(color: theme.dividerColor),
+          //   ),
+          //   child: Row(
+          //     children: [
+          //       _buildTab(
+          //         context,
+          //         DeploymentMethod.command,
+          //         '>_ Command',
+          //         state.method,
+          //         notifier,
+          //       ),
+          //       _buildTab(
+          //         context,
+          //         DeploymentMethod.file,
+          //         'File',
+          //         state.method,
+          //         notifier,
+          //       ),
+          //     ],
+          //   ),
+          // ),
+          // const SizedBox(height: 24),
           if (state.method == DeploymentMethod.command) ...[
             Text(
               'Command',
@@ -122,36 +135,90 @@ class DeploymentInputSection extends ConsumerWidget {
               ),
             ),
           ] else if (state.method == DeploymentMethod.file) ...[
-            Container(
-              height: 120,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: theme.dividerColor,
-                  style: BorderStyle.solid,
+            if (kIsWeb) ...[
+              Container(
+                height: 120,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: theme.dividerColor,
+                    style: BorderStyle.solid,
+                  ),
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Builder(
+                      builder: (context) {
+                        return DropzoneView(
+                          operation: DragOperation.copyLink,
+                          onHover: () => print('Hover DropZone'),
+                          onLeave: () => print('Leave DropZone'),
+                          onCreated: (ctrl) => dropZoneController = ctrl,
+                          onDropFile: acceptFile,
+                        );
+                      },
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          LucideIcons.uploadCloud,
+                          size: 32,
+                          color: theme.textTheme.bodyMedium?.color,
+                        ),
+                        const SizedBox(height: 8),
+
+                        Text(
+                          'Click to upload or drag and drop',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: theme.textTheme.bodyMedium?.color,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    LucideIcons.uploadCloud,
-                    size: 32,
-                    color: theme.textTheme.bodyMedium?.color,
+            ] else if (Platform.isWindows) ...[
+              Container(
+                height: 120,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: theme.dividerColor,
+                    style: BorderStyle.solid,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Click to upload or drag and drop',
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      LucideIcons.uploadCloud,
+                      size: 32,
                       color: theme.textTheme.bodyMedium?.color,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+
+                    Text(
+                      'Click to upload',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: theme.textTheme.bodyMedium?.color,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ] else if (Platform.isLinux)
+              ...[]
+            else if (Platform.isMacOS)
+              ...[],
           ],
         ],
       ),
@@ -215,5 +282,29 @@ class DeploymentInputSection extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> acceptFile(dynamic event) async {
+    if (dropZoneController == null) {
+      print('DropZone controller not initialized');
+      return;
+    }
+
+    try {
+      final name = await dropZoneController!.getFilename(event);
+      final mime = await dropZoneController!.getFileMIME(event);
+      final size = await dropZoneController!.getFileSize(event);
+      final url = await dropZoneController!.createFileUrl(event);
+
+      print('File name    : $name');
+      print('File size    : $size bytes');
+      print('MIME type    : $mime');
+      print('File URL     : $url');
+
+      // TODO: Update the deployment provider with the file information
+      // ref.read(deploymentProvider.notifier).setFile(name, url);
+    } catch (e) {
+      print('Error getting file info: $e');
+    }
   }
 }
