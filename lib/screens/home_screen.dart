@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../providers/deployment_provider.dart';
 import '../widgets/deployment_input_section.dart';
+import '../widgets/execution_status_table.dart';
 import '../widgets/node_list_section.dart';
 import '../providers/theme_provider.dart';
 
@@ -82,6 +83,8 @@ class HomeScreen extends ConsumerWidget {
                           const SizedBox(height: 24),
                           DeploymentInputSection(),
                           const SizedBox(height: 24),
+                          const ExecutionStatusTable(),
+                          const SizedBox(height: 24),
                           const SizedBox(height: 500, child: NodeListSection()),
                         ],
                       );
@@ -97,6 +100,8 @@ class HomeScreen extends ConsumerWidget {
                                 _buildExecutionCard(context, state, notifier),
                                 const SizedBox(height: 8),
                                 DeploymentInputSection(),
+                                const SizedBox(height: 16),
+                                const ExecutionStatusTable(),
                               ],
                             ),
                           ),
@@ -126,7 +131,9 @@ class HomeScreen extends ConsumerWidget {
                 ref.read(themeProvider.notifier).toggleTheme();
               },
               icon: Icon(
-                themeMode == ThemeMode.dark ? LucideIcons.sun : LucideIcons.moon,
+                themeMode == ThemeMode.dark
+                    ? LucideIcons.sun
+                    : LucideIcons.moon,
                 color: Theme.of(context).textTheme.bodyMedium?.color,
               ),
             ),

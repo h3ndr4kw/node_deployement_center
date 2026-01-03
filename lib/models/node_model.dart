@@ -12,6 +12,16 @@ enum NodeArea {
 
 enum NodeType { standalone, gwc, gwu, pcc, pcg }
 
+enum NodeExecutionStatus {
+  ready,
+  login,
+  checkUser,
+  loadScript,
+  validate,
+  commit,
+  done,
+}
+
 class Node {
   final String id;
   final String name;
@@ -20,6 +30,8 @@ class Node {
   final NodeType type;
   final bool isOnline;
   final bool isSelected;
+  final NodeExecutionStatus executionStatus;
+  final DateTime? executionDate;
 
   const Node({
     required this.id,
@@ -29,6 +41,8 @@ class Node {
     required this.type,
     required this.isOnline,
     this.isSelected = false,
+    this.executionStatus = NodeExecutionStatus.ready,
+    this.executionDate,
   });
 
   Node copyWith({
@@ -39,6 +53,8 @@ class Node {
     NodeType? type,
     bool? isOnline,
     bool? isSelected,
+    NodeExecutionStatus? executionStatus,
+    DateTime? executionDate,
   }) {
     return Node(
       id: id ?? this.id,
@@ -48,6 +64,8 @@ class Node {
       type: type ?? this.type,
       isOnline: isOnline ?? this.isOnline,
       isSelected: isSelected ?? this.isSelected,
+      executionStatus: executionStatus ?? this.executionStatus,
+      executionDate: executionDate ?? this.executionDate,
     );
   }
 }

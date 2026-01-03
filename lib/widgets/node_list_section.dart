@@ -77,19 +77,71 @@ class NodeListSection extends ConsumerWidget {
           const SizedBox(height: 24),
           Expanded(
             child: SingleChildScrollView(
-              child: Column(
-                children: NodeArea.values.map((area) {
-                  final areaNodes = state.nodes
-                      .where((n) => n.area == area)
-                      .toList();
-                  if (areaNodes.isEmpty) return const SizedBox.shrink();
+              child: Builder(
+                builder: (context) {
+                  // Sort areas: selected areas first (in selection order), then unselected
+                  final selectedOrder = state.selectedAreaOrder;
+                  final sortedAreas = List<NodeArea>.from(NodeArea.values);
+                  sortedAreas.sort((a, b) {
+                    final aSelected = selectedOrder.contains(a);
+                    final bSelected = selectedOrder.contains(b);
 
-                  return AreaNodeSection(
-                    title: area.name.toUpperCase(),
-                    nodes: areaNodes,
-                    onToggle: notifier.toggleSelection,
+                    if (aSelected && bSelected) {
+                      // Both selected: sort by selection order
+                      return selectedOrder
+                          .indexOf(a)
+                          .compareTo(selectedOrder.indexOf(b));
+                    } else if (aSelected) {
+                      // a is selected, b is not: a comes first
+                      return -1;
+                    } else if (bSelected) {
+                      // b is selected, a is not: b comes first
+                      return 1;
+                    } else {
+                      // Neither selected: maintain original order
+                      return NodeArea.values
+                          .indexOf(a)
+                          .compareTo(NodeArea.values.indexOf(b));
+                    }
+                  });
+
+                  // Area-specific colors (matching RegionalSelector)
+                  const areaColors = {
+                    NodeArea.sumbagut: Color(0xFF2979FF), // Blue
+                    NodeArea.sumbagteng: Color(0xFF00C853), // Green
+                    NodeArea.sumbagsel: Color(0xFFFFA000), // Amber/Orange
+                    NodeArea.jabo: Color(0xFFFF2E63), // Pink/Red
+                    NodeArea.jabar: Color(0xFFAA00FF), // Purple
+                    NodeArea.kalimantan: Color(0xFF00E5FF), // Cyan
+                    NodeArea.sulawesi: Color(0xFF536DFE), // Indigo
+                    NodeArea.malirja: Color(0xFFFF6D00), // Deep Orange
+                    NodeArea.testbed: Colors.grey,
+                  };
+
+                  return Column(
+                    children: sortedAreas.map((area) {
+                      final areaNodes = state.nodes
+                          .where((n) => n.area == area)
+                          .toList();
+                      if (areaNodes.isEmpty) return const SizedBox.shrink();
+
+                      // Check if all nodes in this area are selected
+                      final isAreaSelected =
+                          areaNodes.isNotEmpty &&
+                          areaNodes.every((node) => node.isSelected);
+
+                      final areaColor = areaColors[area] ?? Colors.grey;
+
+                      return AreaNodeSection(
+                        title: area.name.toUpperCase(),
+                        nodes: areaNodes,
+                        onToggle: notifier.toggleSelection,
+                        isAreaSelected: isAreaSelected,
+                        areaColor: areaColor,
+                      );
+                    }).toList(),
                   );
-                }).toList(),
+                },
               ),
             ),
           ),

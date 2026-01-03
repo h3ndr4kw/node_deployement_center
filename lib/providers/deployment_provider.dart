@@ -14,6 +14,10 @@ class DeploymentState {
   final String inputCommand;
   final String? selectedFile;
   final DeploymentStatus status;
+  final List<NodeArea> selectedAreaOrder;
+  final Map<NodeType, String> commandsByNodeType;
+  final Map<NodeType, String?> filesByNodeType;
+  final NodeType? selectedNodeType;
 
   DeploymentState({
     required this.nodes,
@@ -21,9 +25,35 @@ class DeploymentState {
     required this.inputCommand,
     this.selectedFile,
     required this.status,
+    this.selectedAreaOrder = const [],
+    this.commandsByNodeType = const {},
+    this.filesByNodeType = const {},
+    this.selectedNodeType,
   });
 
   int get selectedCount => nodes.where((n) => n.isSelected).length;
+
+  /// Get list of node types that have selected nodes
+  List<NodeType> get selectedNodeTypes {
+    final types = nodes
+        .where((n) => n.isSelected)
+        .map((n) => n.type)
+        .toSet()
+        .toList();
+    // Sort by enum index for consistent order
+    types.sort((a, b) => a.index.compareTo(b.index));
+    return types;
+  }
+
+  /// Get command for a specific node type
+  String getCommandForType(NodeType type) {
+    return commandsByNodeType[type] ?? '';
+  }
+
+  /// Get file for a specific node type
+  String? getFileForType(NodeType type) {
+    return filesByNodeType[type];
+  }
 
   DeploymentState copyWith({
     List<Node>? nodes,
@@ -31,6 +61,11 @@ class DeploymentState {
     String? inputCommand,
     String? selectedFile,
     DeploymentStatus? status,
+    List<NodeArea>? selectedAreaOrder,
+    Map<NodeType, String>? commandsByNodeType,
+    Map<NodeType, String?>? filesByNodeType,
+    NodeType? selectedNodeType,
+    bool clearSelectedNodeType = false,
   }) {
     return DeploymentState(
       nodes: nodes ?? this.nodes,
@@ -38,6 +73,12 @@ class DeploymentState {
       inputCommand: inputCommand ?? this.inputCommand,
       selectedFile: selectedFile ?? this.selectedFile,
       status: status ?? this.status,
+      selectedAreaOrder: selectedAreaOrder ?? this.selectedAreaOrder,
+      commandsByNodeType: commandsByNodeType ?? this.commandsByNodeType,
+      filesByNodeType: filesByNodeType ?? this.filesByNodeType,
+      selectedNodeType: clearSelectedNodeType
+          ? null
+          : (selectedNodeType ?? this.selectedNodeType),
     );
   }
 }
@@ -65,6 +106,7 @@ class DeploymentNotifier extends Notifier<DeploymentState> {
       inputCommand: '',
       selectedFile: null,
       status: DeploymentStatus.idle,
+      selectedAreaOrder: [],
     );
   }
 
@@ -92,6 +134,18 @@ class DeploymentNotifier extends Notifier<DeploymentState> {
     final allSelected = areaNodes.every((n) => n.isSelected);
     final newSelectionState = !allSelected;
 
+    // Update the selected area order
+    List<NodeArea> newOrder = List.from(state.selectedAreaOrder);
+    if (newSelectionState) {
+      // Adding area - append to end if not already present
+      if (!newOrder.contains(area)) {
+        newOrder.add(area);
+      }
+    } else {
+      // Removing area from selection order
+      newOrder.remove(area);
+    }
+
     state = state.copyWith(
       nodes: state.nodes.map((node) {
         if (node.area == area) {
@@ -99,6 +153,7 @@ class DeploymentNotifier extends Notifier<DeploymentState> {
         }
         return node;
       }).toList(),
+      selectedAreaOrder: newOrder,
     );
   }
 
@@ -107,6 +162,7 @@ class DeploymentNotifier extends Notifier<DeploymentState> {
       nodes: state.nodes
           .map((node) => node.copyWith(isSelected: false))
           .toList(),
+      selectedAreaOrder: [],
     );
   }
 
@@ -114,8 +170,24 @@ class DeploymentNotifier extends Notifier<DeploymentState> {
     state = state.copyWith(method: method);
   }
 
+  void setSelectedNodeType(NodeType type) {
+    state = state.copyWith(selectedNodeType: type);
+  }
+
   void updateInput(String value) {
     state = state.copyWith(inputCommand: value);
+  }
+
+  void updateCommandForType(NodeType type, String command) {
+    final newCommands = Map<NodeType, String>.from(state.commandsByNodeType);
+    newCommands[type] = command;
+    state = state.copyWith(commandsByNodeType: newCommands);
+  }
+
+  void updateFileForType(NodeType type, String? fileName) {
+    final newFiles = Map<NodeType, String?>.from(state.filesByNodeType);
+    newFiles[type] = fileName;
+    state = state.copyWith(filesByNodeType: newFiles);
   }
 
   Future<void> selectFile() async {

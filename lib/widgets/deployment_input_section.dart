@@ -6,6 +6,7 @@ import 'package:flutter_dropzone/flutter_dropzone.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../models/node_model.dart';
 import '../providers/deployment_provider.dart';
 
 class DeploymentInputSection extends ConsumerStatefulWidget {
@@ -25,6 +26,28 @@ class _DeploymentInputSectionState
     final state = ref.watch(deploymentProvider);
     final notifier = ref.read(deploymentProvider.notifier);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Get selected node types
+    final selectedNodeTypes = state.selectedNodeTypes;
+
+    // Determine current selected node type
+    NodeType? currentNodeType = state.selectedNodeType;
+    if (currentNodeType == null && selectedNodeTypes.isNotEmpty) {
+      currentNodeType = selectedNodeTypes.first;
+    }
+    // Ensure current type is in selected types
+    if (currentNodeType != null &&
+        !selectedNodeTypes.contains(currentNodeType)) {
+      currentNodeType = selectedNodeTypes.isNotEmpty
+          ? selectedNodeTypes.first
+          : null;
+    }
+
+    // Get command for current node type
+    final currentCommand = currentNodeType != null
+        ? state.getCommandForType(currentNodeType)
+        : '';
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -36,50 +59,19 @@ class _DeploymentInputSectionState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Text(
-          //   'Deployment Input',
-          //   style: GoogleFonts.inter(
-          //     fontSize: 18,
-          //     fontWeight: FontWeight.w700,
-          //     color: theme.textTheme.displayLarge?.color,
-          //   ),
-          // ),
-          // const SizedBox(height: 8),
-          // Text(
-          //   'Select your preferred deployment method',
-          //   style: GoogleFonts.inter(
-          //     fontSize: 14,
-          //     color: theme.textTheme.bodyMedium?.color,
-          //   ),
-          // ),
-          // const SizedBox(height: 24),
-          // Container(
-          //   padding: const EdgeInsets.all(4),
-          //   decoration: BoxDecoration(
-          //     color: theme.colorScheme.surfaceContainerHighest,
-          //     borderRadius: BorderRadius.circular(8),
-          //     border: Border.all(color: theme.dividerColor),
-          //   ),
-          //   child: Row(
-          //     children: [
-          //       _buildTab(
-          //         context,
-          //         DeploymentMethod.command,
-          //         '>_ Command',
-          //         state.method,
-          //         notifier,
-          //       ),
-          //       _buildTab(
-          //         context,
-          //         DeploymentMethod.file,
-          //         'File',
-          //         state.method,
-          //         notifier,
-          //       ),
-          //     ],
-          //   ),
-          // ),
-          // const SizedBox(height: 24),
+          // Node Type Tabs (only show if there are selected nodes)
+          if (selectedNodeTypes.isNotEmpty) ...[
+            _buildNodeTypeTabs(
+              context,
+              selectedNodeTypes,
+              currentNodeType,
+              notifier,
+              isDark,
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Command or File input based on method
           if (state.method == DeploymentMethod.command) ...[
             Text(
               'Command',
@@ -91,17 +83,25 @@ class _DeploymentInputSectionState
             ),
             const SizedBox(height: 8),
             TextField(
-              controller: TextEditingController(text: state.inputCommand)
+              key: ValueKey('command_${currentNodeType?.name ?? 'none'}'),
+              controller: TextEditingController(text: currentCommand)
                 ..selection = TextSelection.fromPosition(
-                  TextPosition(offset: state.inputCommand.length),
+                  TextPosition(offset: currentCommand.length),
                 ),
-              onChanged: notifier.updateInput,
+              onChanged: (value) {
+                if (currentNodeType != null) {
+                  notifier.updateCommandForType(currentNodeType, value);
+                }
+              },
+              enabled: currentNodeType != null,
               style: GoogleFonts.sourceCodePro(
                 fontSize: 14,
                 color: theme.textTheme.bodyLarge?.color,
               ),
               decoration: InputDecoration(
-                hintText: 'Enter command...',
+                hintText: currentNodeType != null
+                    ? 'Enter command for ${currentNodeType.name.toUpperCase()}...'
+                    : 'Select nodes to enter command...',
                 hintStyle: TextStyle(color: theme.hintColor),
                 filled: true,
                 fillColor: theme.cardColor,
@@ -124,11 +124,19 @@ class _DeploymentInputSectionState
                     width: 2,
                   ),
                 ),
+                disabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                    color: theme.dividerColor.withValues(alpha: 0.5),
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Execute a command across all selected nodes',
+              currentNodeType != null
+                  ? 'Execute command on all selected ${currentNodeType.name.toUpperCase()} nodes'
+                  : 'Select nodes from the Target Nodes panel',
               style: GoogleFonts.inter(
                 fontSize: 13,
                 color: theme.textTheme.bodyMedium?.color,
@@ -157,7 +165,8 @@ class _DeploymentInputSectionState
                           onHover: () => print('Hover DropZone'),
                           onLeave: () => print('Leave DropZone'),
                           onCreated: (ctrl) => dropZoneController = ctrl,
-                          onDropFile: acceptFile,
+                          onDropFile: (event) =>
+                              acceptFile(event, currentNodeType),
                         );
                       },
                     ),
@@ -172,7 +181,9 @@ class _DeploymentInputSectionState
                         const SizedBox(height: 8),
 
                         Text(
-                          'Click to upload or drag and drop',
+                          currentNodeType != null
+                              ? 'Click to upload for ${currentNodeType.name.toUpperCase()}'
+                              : 'Click to upload',
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             color: theme.textTheme.bodyMedium?.color,
@@ -206,7 +217,9 @@ class _DeploymentInputSectionState
                     const SizedBox(height: 8),
 
                     Text(
-                      'Click to upload',
+                      currentNodeType != null
+                          ? 'Click to upload for ${currentNodeType.name.toUpperCase()}'
+                          : 'Click to upload',
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         color: theme.textTheme.bodyMedium?.color,
@@ -225,66 +238,82 @@ class _DeploymentInputSectionState
     );
   }
 
-  Widget _buildTab(
+  Widget _buildNodeTypeTabs(
     BuildContext context,
-    DeploymentMethod method,
-    String label,
-    DeploymentMethod current,
+    List<NodeType> nodeTypes,
+    NodeType? currentType,
     DeploymentNotifier notifier,
+    bool isDark,
   ) {
-    final bool isSelected = method == current;
     final theme = Theme.of(context);
 
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => notifier.setMethod(method),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? const Color(0xFF007E33)
-                : Colors.transparent, // Darker Green (Adjusted)
-            borderRadius: BorderRadius.circular(6),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 2,
-                      offset: const Offset(0, 1),
-                    ),
-                  ]
-                : [],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (method == DeploymentMethod.file)
-                Icon(
-                  LucideIcons.upload,
-                  size: 16,
-                  color: isSelected
-                      ? Colors.white
-                      : theme.textTheme.bodyMedium?.color,
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: isDark
+            ? theme.colorScheme.surfaceContainerHighest
+            : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isDark ? theme.dividerColor : Colors.grey.shade200,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: nodeTypes.map((type) {
+          final isSelected = type == currentType;
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            child: InkWell(
+              onTap: () => notifier.setSelectedNodeType(type),
+              borderRadius: BorderRadius.circular(6),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
                 ),
-              if (method != DeploymentMethod.command) const SizedBox(width: 8),
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                decoration: BoxDecoration(
                   color: isSelected
-                      ? Colors.white
-                      : theme.textTheme.bodyMedium?.color,
+                      ? (isDark ? theme.cardColor : Colors.white)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(6),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ]
+                      : null,
+                  border: isSelected
+                      ? Border.all(
+                          color: isDark
+                              ? theme.dividerColor
+                              : Colors.grey.shade300,
+                        )
+                      : null,
+                ),
+                child: Text(
+                  type.name.toUpperCase(),
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    color: isSelected
+                        ? theme.textTheme.displayLarge?.color
+                        : (isDark ? Colors.grey[500] : Colors.grey[600]),
+                  ),
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
 
-  Future<void> acceptFile(dynamic event) async {
+  Future<void> acceptFile(dynamic event, NodeType? nodeType) async {
     if (dropZoneController == null) {
       print('DropZone controller not initialized');
       return;
@@ -300,9 +329,12 @@ class _DeploymentInputSectionState
       print('File size    : $size bytes');
       print('MIME type    : $mime');
       print('File URL     : $url');
+      print('Node type    : ${nodeType?.name ?? 'none'}');
 
-      // TODO: Update the deployment provider with the file information
-      // ref.read(deploymentProvider.notifier).setFile(name, url);
+      // Update the deployment provider with the file information for this node type
+      if (nodeType != null) {
+        ref.read(deploymentProvider.notifier).updateFileForType(nodeType, name);
+      }
     } catch (e) {
       print('Error getting file info: $e');
     }
