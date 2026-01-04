@@ -210,6 +210,7 @@ class HomeScreen extends ConsumerWidget {
                   'Command',
                   state.method,
                   notifier,
+                  isEnabled: state.selectedCount > 0,
                 ),
                 _buildTab(
                   context,
@@ -217,6 +218,7 @@ class HomeScreen extends ConsumerWidget {
                   'File',
                   state.method,
                   notifier,
+                  isEnabled: state.selectedCount > 0,
                 ),
               ],
             ),
@@ -268,45 +270,49 @@ class HomeScreen extends ConsumerWidget {
     DeploymentMethod method,
     String label,
     DeploymentMethod current,
-    DeploymentNotifier notifier,
-  ) {
+    DeploymentNotifier notifier, {
+    bool isEnabled = true,
+  }) {
     final bool isSelected = method == current;
     final theme = Theme.of(context);
 
     return Expanded(
       child: GestureDetector(
-        onTap: () => notifier.setMethod(method),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? const Color.fromARGB(255, 50, 165, 96)
-                : Colors.transparent, // Darker Green
-            borderRadius: BorderRadius.circular(6),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 2,
-                      offset: const Offset(0, 1),
-                    ),
-                  ]
-                : [],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 13, // Slightly smaller for the bar
-                  fontWeight: FontWeight.w500,
-                  color: isSelected
-                      ? Colors.white
-                      : theme.textTheme.bodyMedium?.color,
+        onTap: isEnabled ? () => notifier.setMethod(method) : null,
+        child: Opacity(
+          opacity: isEnabled ? 1.0 : 0.5,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected && isEnabled
+                  ? const Color.fromARGB(255, 50, 165, 96)
+                  : Colors.transparent, // Darker Green
+              borderRadius: BorderRadius.circular(6),
+              boxShadow: isSelected && isEnabled
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 2,
+                        offset: const Offset(0, 1),
+                      ),
+                    ]
+                  : [],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 13, // Slightly smaller for the bar
+                    fontWeight: FontWeight.w500,
+                    color: isSelected && isEnabled
+                        ? Colors.white
+                        : theme.textTheme.bodyMedium?.color,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

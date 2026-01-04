@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../models/node_model.dart';
 import '../providers/deployment_provider.dart';
+import 'select_node_animation.dart';
 
 class DeploymentInputSection extends ConsumerStatefulWidget {
   const DeploymentInputSection({super.key});
@@ -73,75 +74,86 @@ class _DeploymentInputSectionState
 
           // Command or File input based on method
           if (state.method == DeploymentMethod.command) ...[
-            Text(
-              'Command',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: theme.textTheme.displayMedium?.color,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              key: ValueKey('command_${currentNodeType?.name ?? 'none'}'),
-              controller: TextEditingController(text: currentCommand)
-                ..selection = TextSelection.fromPosition(
-                  TextPosition(offset: currentCommand.length),
-                ),
-              onChanged: (value) {
-                if (currentNodeType != null) {
-                  notifier.updateCommandForType(currentNodeType, value);
-                }
-              },
-              enabled: currentNodeType != null,
-              style: GoogleFonts.sourceCodePro(
-                fontSize: 14,
-                color: theme.textTheme.bodyLarge?.color,
-              ),
-              decoration: InputDecoration(
-                hintText: currentNodeType != null
-                    ? 'Enter command for ${currentNodeType.name.toUpperCase()}...'
-                    : 'Select nodes to enter command...',
-                hintStyle: TextStyle(color: theme.hintColor),
-                filled: true,
-                fillColor: theme.cardColor,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: theme.dividerColor),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: theme.dividerColor),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(
-                    color: theme.colorScheme.primary,
-                    width: 2,
+            // Text(
+            //   'Command',
+            //   style: GoogleFonts.inter(
+            //     fontSize: 14,
+            //     fontWeight: FontWeight.w600,
+            //     color: theme.textTheme.displayMedium?.color,
+            //   ),
+            // ),
+            // const SizedBox(height: 8),
+            currentNodeType == null
+                ? Container(
+                    height:
+                        480, // Default approximate height of 20 lines text field
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: theme.dividerColor),
+                    ),
+                    child: const SelectNodeAnimation(),
+                  )
+                : TextFormField(
+                    key: ValueKey('command_${currentNodeType.name}'),
+                    controller: TextEditingController(text: currentCommand)
+                      ..selection = TextSelection.fromPosition(
+                        TextPosition(offset: currentCommand.length),
+                      ),
+                    onChanged: (value) {
+                      notifier.updateCommandForType(currentNodeType!, value);
+                    },
+                    enabled: true,
+                    keyboardType: TextInputType.multiline,
+                    minLines: 20,
+                    maxLines: 20,
+                    style: GoogleFonts.sourceCodePro(
+                      fontSize: 14,
+                      color: theme.textTheme.bodyLarge?.color,
+                    ),
+                    decoration: InputDecoration(
+                      hintText:
+                          'Enter command for ${currentNodeType.name.toUpperCase()}...',
+                      hintStyle: TextStyle(color: theme.hintColor),
+                      filled: true,
+                      fillColor: theme.cardColor,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: theme.dividerColor),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: theme.dividerColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: theme.colorScheme.primary,
+                          width: 2,
+                        ),
+                      ),
+                      disabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: theme.dividerColor.withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                disabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(
-                    color: theme.dividerColor.withValues(alpha: 0.5),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              currentNodeType != null
-                  ? 'Execute command on all selected ${currentNodeType.name.toUpperCase()} nodes'
-                  : 'Select nodes from the Target Nodes panel',
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                color: theme.textTheme.bodyMedium?.color,
-              ),
-            ),
+            // const SizedBox(height: 8),
+            // Text(
+            //   currentNodeType != null
+            //       ? 'Execute command on all selected ${currentNodeType.name.toUpperCase()} nodes'
+            //       : 'Select nodes from the Target Nodes panel',
+            //   style: GoogleFonts.inter(
+            //     fontSize: 13,
+            //     color: theme.textTheme.bodyMedium?.color,
+            //   ),
+            // ),
           ] else if (state.method == DeploymentMethod.file) ...[
             if (kIsWeb) ...[
               Container(
