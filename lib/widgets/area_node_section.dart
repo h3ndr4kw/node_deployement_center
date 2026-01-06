@@ -54,7 +54,7 @@ class AreaNodeSection extends StatelessWidget {
             child: Text(
               title,
               style: GoogleFonts.inter(
-                fontSize: 13,
+                fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: isAreaSelected
                     ? Colors.white
@@ -64,17 +64,24 @@ class AreaNodeSection extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(
-          height: 100, // Fixed height for the horizontal list
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: nodes.length,
-            separatorBuilder: (context, index) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final node = nodes[index];
-              return NodeTile(node: node, onTap: () => onToggle(node.id));
-            },
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 150,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 2.5,
           ),
+          itemCount: nodes.length,
+          itemBuilder: (context, index) {
+            final node = nodes[index];
+            return NodeTile(
+              node: node,
+              onTap: () => onToggle(node.id),
+              margin: EdgeInsets.zero,
+            );
+          },
         ),
         const SizedBox(height: 16),
       ],

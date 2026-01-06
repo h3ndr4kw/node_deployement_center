@@ -19,10 +19,10 @@ class _SelectNodeAnimationState extends State<SelectNodeAnimation>
 
   // Animation modes
   static const List<String> _modes = [
-    'Appear',
-    'Fade',
+    // 'Appear',
+    // 'Fade',
     'Fly In',
-    'Zoom',
+    // 'Zoom',
     'Float In',
     'Split',
   ];
@@ -43,7 +43,7 @@ class _SelectNodeAnimationState extends State<SelectNodeAnimation>
     // Initial animation
     _playCurrentAnimation();
 
-    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (mounted) {
         setState(() {
           _currentModeIndex = (_currentModeIndex + 1) % _modes.length;
@@ -69,9 +69,9 @@ class _SelectNodeAnimationState extends State<SelectNodeAnimation>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textStyle = GoogleFonts.sourceCodePro(
-      fontSize: 16,
+      fontSize: 32,
       color: theme.hintColor,
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w900,
     );
 
     return Center(
@@ -86,7 +86,8 @@ class _SelectNodeAnimationState extends State<SelectNodeAnimation>
   }
 
   Widget _buildAnimationForMode(String mode, TextStyle style) {
-    const text = "Make it simple";
+    const text = "Deploy the configuration";
+    const text2 = "Select node";
 
     switch (mode) {
       case 'Appear':
@@ -105,7 +106,7 @@ class _SelectNodeAnimationState extends State<SelectNodeAnimation>
           offset: Offset(-50 * (1 - _controller.value), 0),
           child: Opacity(
             opacity: _controller.value,
-            child: Text(text, style: style),
+            child: Text(text2, style: style),
           ),
         );
 
@@ -114,7 +115,7 @@ class _SelectNodeAnimationState extends State<SelectNodeAnimation>
           scale: _controller.value,
           child: Opacity(
             opacity: _controller.value,
-            child: Text(text, style: style),
+            child: Text(text2, style: style),
           ),
         );
 
@@ -143,14 +144,14 @@ class _SelectNodeAnimationState extends State<SelectNodeAnimation>
               offset: Offset(-30 * (1 - splitValue), 0),
               child: Opacity(
                 opacity: splitValue,
-                child: Text("select ", style: style),
+                child: Text("PISC", style: style),
               ),
             ),
             Transform.translate(
               offset: Offset(30 * (1 - splitValue), 0),
               child: Opacity(
                 opacity: splitValue,
-                child: Text("node", style: style),
+                child: Text(" Management", style: style),
               ),
             ),
           ],

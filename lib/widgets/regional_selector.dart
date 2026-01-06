@@ -27,16 +27,16 @@ class RegionalSelector extends ConsumerWidget {
 
     return Column(
       children: [
-        Text(
-          'REGIONAL AREA',
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 2.0,
-            color: isDark ? Colors.grey[400] : Colors.grey[600],
-          ),
-        ),
-        const SizedBox(height: 16),
+        // Text(
+        //   'REGIONAL AREA',
+        //   style: GoogleFonts.inter(
+        //     fontSize: 12,
+        //     fontWeight: FontWeight.w600,
+        //     letterSpacing: 2.0,
+        //     color: isDark ? Colors.grey[400] : Colors.grey[600],
+        //   ),
+        // ),
+        // const SizedBox(height: 16),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(24),

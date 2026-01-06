@@ -60,29 +60,68 @@ class _DeploymentInputSectionState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Node Type Tabs (only show if there are selected nodes)
+          // Header Row with Tabs and Method Toggle
           if (selectedNodeTypes.isNotEmpty) ...[
-            _buildNodeTypeTabs(
-              context,
-              selectedNodeTypes,
-              currentNodeType,
-              notifier,
-              isDark,
+            Row(
+              children: [
+                _buildNodeTypeTabs(
+                  context,
+                  selectedNodeTypes,
+                  currentNodeType,
+                  notifier,
+                  isDark,
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton.icon(
+                  onPressed:
+                      state.selectedCount > 0 &&
+                          state.status != DeploymentStatus.running
+                      ? notifier.executeDeployment
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(
+                      255,
+                      219,
+                      71,
+                      106,
+                    ), // Light green as requested
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    elevation: 0,
+                  ),
+                  icon: state.status == DeploymentStatus.running
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(LucideIcons.play, size: 16),
+                  label: Text(
+                    state.status == DeploymentStatus.running
+                        ? 'Deploying...'
+                        : 'Run      ',
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(child: SizedBox() ),
+                _buildMethodToggle(context, state, notifier)
+              ],
             ),
             const SizedBox(height: 16),
           ],
 
           // Command or File input based on method
           if (state.method == DeploymentMethod.command) ...[
-            // Text(
-            //   'Command',
-            //   style: GoogleFonts.inter(
-            //     fontSize: 14,
-            //     fontWeight: FontWeight.w600,
-            //     color: theme.textTheme.displayMedium?.color,
-            //   ),
-            // ),
-            // const SizedBox(height: 8),
             currentNodeType == null
                 ? Container(
                     height:
@@ -144,16 +183,6 @@ class _DeploymentInputSectionState
                       ),
                     ),
                   ),
-            // const SizedBox(height: 8),
-            // Text(
-            //   currentNodeType != null
-            //       ? 'Execute command on all selected ${currentNodeType.name.toUpperCase()} nodes'
-            //       : 'Select nodes from the Target Nodes panel',
-            //   style: GoogleFonts.inter(
-            //     fontSize: 13,
-            //     color: theme.textTheme.bodyMedium?.color,
-            //   ),
-            // ),
           ] else if (state.method == DeploymentMethod.file) ...[
             if (kIsWeb) ...[
               Container(
@@ -350,5 +379,95 @@ class _DeploymentInputSectionState
     } catch (e) {
       print('Error getting file info: $e');
     }
+  }
+
+  Widget _buildMethodToggle(
+    BuildContext context,
+    DeploymentState state,
+    DeploymentNotifier notifier,
+  ) {
+    return Container(
+      width: 200, // Fixed width for the toggle
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: Row(
+        children: [
+          _buildTab(
+            context,
+            DeploymentMethod.command,
+            'Command',
+            state.method,
+            notifier,
+            isEnabled: state.selectedCount > 0,
+          ),
+          _buildTab(
+            context,
+            DeploymentMethod.file,
+            'File',
+            state.method,
+            notifier,
+            isEnabled: state.selectedCount > 0,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTab(
+    BuildContext context,
+    DeploymentMethod method,
+    String label,
+    DeploymentMethod current,
+    DeploymentNotifier notifier, {
+    bool isEnabled = true,
+  }) {
+    final bool isSelected = method == current;
+    final theme = Theme.of(context);
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: isEnabled ? () => notifier.setMethod(method) : null,
+        child: Opacity(
+          opacity: isEnabled ? 1.0 : 0.5,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected && isEnabled
+                  ? const Color.fromARGB(255, 50, 165, 96)
+                  : Colors.transparent, // Darker Green
+              borderRadius: BorderRadius.circular(6),
+              boxShadow: isSelected && isEnabled
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 2,
+                        offset: const Offset(0, 1),
+                      ),
+                    ]
+                  : [],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: isSelected && isEnabled
+                        ? Colors.white
+                        : theme.textTheme.bodyMedium?.color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

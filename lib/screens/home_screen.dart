@@ -26,52 +26,6 @@ class HomeScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // // Header
-                // Row(
-                //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //   children: [
-                //     Expanded(
-                //       child: Column(
-                //         crossAxisAlignment: CrossAxisAlignment.start,
-                //         children: [
-                //           // Text(
-                //           //   // 'Node Deployment Center',
-                //           //   'EPG Deployment Center',
-                //           //   style: GoogleFonts.inter(
-                //           //     fontSize: 28,
-                //           //     fontWeight: FontWeight.w800,
-                //           //     color: Theme.of(
-                //           //       context,
-                //           //     ).textTheme.displayLarge?.color,
-                //           //     letterSpacing: -0.5,
-                //           //   ),
-                //           // ),
-                //           // const SizedBox(height: 8),
-                //           // Text(
-                //           //   'Deploy file or command to selected nodes simultaneously',
-                //           //   style: GoogleFonts.inter(
-                //           //     fontSize: 16,
-                //           //     color: Theme.of(context).textTheme.bodyMedium?.color,
-                //           //   ),
-                //           // ),
-                //         ],
-                //       ),
-                //     ),
-                //     IconButton(
-                //       onPressed: () {
-                //         ref.read(themeProvider.notifier).toggleTheme();
-                //       },
-                //       icon: Icon(
-                //         themeMode == ThemeMode.dark
-                //             ? LucideIcons.sun
-                //             : LucideIcons.moon,
-                //         color: Theme.of(context).textTheme.bodyMedium?.color,
-                //       ),
-                //     ),
-                //   ],
-                // ),
-                // const SizedBox(height: 32),
-
                 // Main Content Area
                 LayoutBuilder(
                   builder: (context, constraints) {
@@ -97,8 +51,8 @@ class HomeScreen extends ConsumerWidget {
                             flex: 3,
                             child: Column(
                               children: [
-                                _buildExecutionCard(context, state, notifier),
-                                const SizedBox(height: 8),
+                                // _buildExecutionCard(context, state, notifier),
+                                // const SizedBox(height: 8),
                                 DeploymentInputSection(),
                                 const SizedBox(height: 16),
                                 const ExecutionStatusTable(),
@@ -124,7 +78,7 @@ class HomeScreen extends ConsumerWidget {
           ),
 
           Positioned(
-            top: 50,
+            bottom: 70,
             right: 50,
             child: IconButton(
               onPressed: () {
@@ -157,72 +111,8 @@ class HomeScreen extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              LucideIcons.server,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${state.selectedCount} nodes selected',
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Theme.of(context).textTheme.displayLarge?.color,
-                  ),
-                ),
-                Text(
-                  'Ready for deployment',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
-                ),
-              ],
-            ),
-          ),
           // Toggle Switch
-          Container(
-            width: 200, // Fixed width for the toggle
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Theme.of(context).dividerColor),
-            ),
-            child: Row(
-              children: [
-                _buildTab(
-                  context,
-                  DeploymentMethod.command,
-                  'Command',
-                  state.method,
-                  notifier,
-                  isEnabled: state.selectedCount > 0,
-                ),
-                _buildTab(
-                  context,
-                  DeploymentMethod.file,
-                  'File',
-                  state.method,
-                  notifier,
-                  isEnabled: state.selectedCount > 0,
-                ),
-              ],
-            ),
-          ),
+          const Spacer(),
           ElevatedButton.icon(
             onPressed:
                 state.selectedCount > 0 &&
@@ -256,65 +146,11 @@ class HomeScreen extends ConsumerWidget {
             label: Text(
               state.status == DeploymentStatus.running
                   ? 'Deploying...'
-                  : 'Execute      ',
+                  : 'Run      ',
               style: GoogleFonts.inter(fontWeight: FontWeight.w600),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTab(
-    BuildContext context,
-    DeploymentMethod method,
-    String label,
-    DeploymentMethod current,
-    DeploymentNotifier notifier, {
-    bool isEnabled = true,
-  }) {
-    final bool isSelected = method == current;
-    final theme = Theme.of(context);
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: isEnabled ? () => notifier.setMethod(method) : null,
-        child: Opacity(
-          opacity: isEnabled ? 1.0 : 0.5,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: isSelected && isEnabled
-                  ? const Color.fromARGB(255, 50, 165, 96)
-                  : Colors.transparent, // Darker Green
-              borderRadius: BorderRadius.circular(6),
-              boxShadow: isSelected && isEnabled
-                  ? [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 2,
-                        offset: const Offset(0, 1),
-                      ),
-                    ]
-                  : [],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  label,
-                  style: GoogleFonts.inter(
-                    fontSize: 13, // Slightly smaller for the bar
-                    fontWeight: FontWeight.w500,
-                    color: isSelected && isEnabled
-                        ? Colors.white
-                        : theme.textTheme.bodyMedium?.color,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }

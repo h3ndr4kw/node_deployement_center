@@ -26,25 +26,8 @@ class NodeListSection extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                LucideIcons.server,
-                size: 20,
-                color: theme.textTheme.displayLarge?.color,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Target Nodes',
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: theme.textTheme.displayLarge?.color,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
+          // Target Nodes Header removed
+          // const SizedBox(height: 8),
           // Text(
           //   'Select nodes for deployment',
           //   style: GoogleFonts.inter(

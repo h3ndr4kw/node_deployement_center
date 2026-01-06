@@ -27,52 +27,52 @@ class ExecutionStatusTable extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.table_chart_outlined,
-                  size: 20,
-                  color: theme.textTheme.displayLarge?.color,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Execution Status',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: theme.textTheme.displayLarge?.color,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? theme.colorScheme.surfaceContainerHighest
-                        : Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '${selectedNodes.length} nodes',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: theme.textTheme.bodyMedium?.color,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          // // Header
+          // Padding(
+          //   padding: const EdgeInsets.all(20),
+          //   child: Row(
+          //     children: [
+          //       // Icon(
+          //       //   Icons.table_chart_outlined,
+          //       //   size: 20,
+          //       //   color: theme.textTheme.displayLarge?.color,
+          //       // ),
+          //       // const SizedBox(width: 8),
+          //       // Text(
+          //       //   'Execution Status',
+          //       //   style: GoogleFonts.inter(
+          //       //     fontSize: 16,
+          //       //     fontWeight: FontWeight.w700,
+          //       //     color: theme.textTheme.displayLarge?.color,
+          //       //   ),
+          //       // ),
+          //       // const SizedBox(width: 12),
+          //       Container(
+          //         padding: const EdgeInsets.symmetric(
+          //           horizontal: 8,
+          //           vertical: 4,
+          //         ),
+          //         decoration: BoxDecoration(
+          //           color: isDark
+          //               ? theme.colorScheme.surfaceContainerHighest
+          //               : Colors.grey.shade100,
+          //           borderRadius: BorderRadius.circular(12),
+          //         ),
+          //         child: Text(
+          //           '${selectedNodes.length} nodes',
+          //           style: GoogleFonts.inter(
+          //             fontSize: 12,
+          //             fontWeight: FontWeight.w500,
+          //             color: theme.textTheme.bodyMedium?.color,
+          //           ),
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
 
-          // Divider
-          Divider(height: 1, color: theme.dividerColor),
+          // // Divider
+          // Divider(height: 1, color: theme.dividerColor),
 
           // Table or Empty State
           if (selectedNodes.isEmpty)
