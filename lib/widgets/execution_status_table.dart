@@ -108,68 +108,71 @@ class ExecutionStatusTable extends ConsumerWidget {
               ),
             )
           else
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minWidth: MediaQuery.of(context).size.width * 0.4,
-                ),
-                child: DataTable(
-                  headingRowColor: WidgetStatePropertyAll(
-                    isDark
-                        ? theme.colorScheme.surfaceContainerHighest
-                        : Colors.grey.shade50,
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: MediaQuery.of(context).size.width * 0.4,
                   ),
-                  dataRowColor: WidgetStatePropertyAll(Colors.transparent),
-                  columnSpacing: 24,
-                  horizontalMargin: 20,
-                  headingTextStyle: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.grey[400] : Colors.grey[700],
-                    letterSpacing: 0.5,
-                  ),
-                  dataTextStyle: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: theme.textTheme.bodyMedium?.color,
-                  ),
-                  columns: const [
-                    DataColumn(label: Text('NODE NAME')),
-                    DataColumn(label: Text('IP ADDRESS')),
-                    DataColumn(label: Text('AREA')),
-                    DataColumn(label: Text('NODE TYPE')),
-                    DataColumn(label: Text('STATUS')),
-                    DataColumn(label: Text('DATE EXECUTION')),
-                  ],
-                  rows: selectedNodes.map((node) {
-                    return DataRow(
-                      cells: [
-                        DataCell(
-                          Text(
-                            node.name,
-                            style: GoogleFonts.inter(
-                              fontWeight: FontWeight.w600,
+                  child: DataTable(
+                    headingRowColor: WidgetStatePropertyAll(
+                      isDark
+                          ? theme.colorScheme.surfaceContainerHighest
+                          : Colors.grey.shade50,
+                    ),
+                    dataRowColor: WidgetStatePropertyAll(Colors.transparent),
+                    columnSpacing: 24,
+                    horizontalMargin: 20,
+                    headingTextStyle: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.grey[400] : Colors.grey[700],
+                      letterSpacing: 0.5,
+                    ),
+                    dataTextStyle: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: theme.textTheme.bodyMedium?.color,
+                    ),
+                    columns: const [
+                      DataColumn(label: Text('NODE NAME')),
+                      DataColumn(label: Text('IP ADDRESS')),
+                      DataColumn(label: Text('AREA')),
+                      DataColumn(label: Text('NODE TYPE')),
+                      DataColumn(label: Text('STATUS')),
+                      DataColumn(label: Text('DATE EXECUTION')),
+                    ],
+                    rows: selectedNodes.map((node) {
+                      return DataRow(
+                        cells: [
+                          DataCell(
+                            Text(
+                              node.name,
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ),
-                        DataCell(Text(node.ip)),
-                        DataCell(Text(node.area.name.toUpperCase())),
-                        DataCell(Text(node.type.name.toUpperCase())),
-                        DataCell(
-                          _buildStatusBadge(node.executionStatus, isDark),
-                        ),
-                        DataCell(
-                          Text(
-                            node.executionDate != null
-                                ? DateFormat(
-                                    'yyyy-MM-dd HH:mm:ss',
-                                  ).format(node.executionDate!)
-                                : '-',
+                          DataCell(Text(node.ip)),
+                          DataCell(Text(node.area.name.toUpperCase())),
+                          DataCell(Text(node.type.name.toUpperCase())),
+                          DataCell(
+                            _buildStatusBadge(node.executionStatus, isDark),
                           ),
-                        ),
-                      ],
-                    );
-                  }).toList(),
+                          DataCell(
+                            Text(
+                              node.executionDate != null
+                                  ? DateFormat(
+                                      'yyyy-MM-dd HH:mm:ss',
+                                    ).format(node.executionDate!)
+                                  : '-',
+                            ),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             ),

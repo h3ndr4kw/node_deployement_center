@@ -113,8 +113,8 @@ class _DeploymentInputSectionState
                   ),
                 ),
                 const SizedBox(width: 16),
-                Expanded(child: SizedBox() ),
-                _buildMethodToggle(context, state, notifier)
+                Expanded(child: SizedBox()),
+                _buildMethodToggle(context, state, notifier),
               ],
             ),
             const SizedBox(height: 16),
@@ -123,16 +123,7 @@ class _DeploymentInputSectionState
           // Command or File input based on method
           if (state.method == DeploymentMethod.command) ...[
             currentNodeType == null
-                ? Container(
-                    height:
-                        480, // Default approximate height of 20 lines text field
-                    decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: theme.dividerColor),
-                    ),
-                    child: const SelectNodeAnimation(),
-                  )
+                ? information(context)
                 : TextFormField(
                     key: ValueKey('command_${currentNodeType.name}'),
                     controller: TextEditingController(text: currentCommand)
@@ -151,9 +142,9 @@ class _DeploymentInputSectionState
                       color: theme.textTheme.bodyLarge?.color,
                     ),
                     decoration: InputDecoration(
-                      hintText:
-                          'Enter command for ${currentNodeType.name.toUpperCase()}...',
-                      hintStyle: TextStyle(color: theme.hintColor),
+                      // hintText:
+                      //     'Enter command for ${currentNodeType.name.toUpperCase()}...',
+                      // hintStyle: TextStyle(color: theme.hintColor),
                       filled: true,
                       fillColor: theme.cardColor,
                       contentPadding: const EdgeInsets.symmetric(
@@ -185,90 +176,94 @@ class _DeploymentInputSectionState
                   ),
           ] else if (state.method == DeploymentMethod.file) ...[
             if (kIsWeb) ...[
-              Container(
-                height: 120,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: theme.dividerColor,
-                    style: BorderStyle.solid,
-                  ),
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Builder(
-                      builder: (context) {
-                        return DropzoneView(
-                          operation: DragOperation.copyLink,
-                          onHover: () => print('Hover DropZone'),
-                          onLeave: () => print('Leave DropZone'),
-                          onCreated: (ctrl) => dropZoneController = ctrl,
-                          onDropFile: (event) =>
-                              acceptFile(event, currentNodeType),
-                        );
-                      },
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          LucideIcons.uploadCloud,
-                          size: 32,
-                          color: theme.textTheme.bodyMedium?.color,
+              currentNodeType == null
+                  ? information(context)
+                  : Container(
+                      height: 120,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: theme.dividerColor,
+                          style: BorderStyle.solid,
                         ),
-                        const SizedBox(height: 8),
-
-                        Text(
-                          currentNodeType != null
-                              ? 'Click to upload for ${currentNodeType.name.toUpperCase()}'
-                              : 'Click to upload',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: theme.textTheme.bodyMedium?.color,
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Builder(
+                            builder: (context) {
+                              return DropzoneView(
+                                operation: DragOperation.copyLink,
+                                onHover: () => print('Hover DropZone'),
+                                onLeave: () => print('Leave DropZone'),
+                                onCreated: (ctrl) => dropZoneController = ctrl,
+                                onDropFile: (event) =>
+                                    acceptFile(event, currentNodeType),
+                              );
+                            },
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ] else if (Platform.isWindows) ...[
-              Container(
-                height: 120,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: theme.dividerColor,
-                    style: BorderStyle.solid,
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      LucideIcons.uploadCloud,
-                      size: 32,
-                      color: theme.textTheme.bodyMedium?.color,
-                    ),
-                    const SizedBox(height: 8),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                LucideIcons.uploadCloud,
+                                size: 32,
+                                color: theme.textTheme.bodyMedium?.color,
+                              ),
+                              const SizedBox(height: 8),
 
-                    Text(
-                      currentNodeType != null
-                          ? 'Click to upload for ${currentNodeType.name.toUpperCase()}'
-                          : 'Click to upload',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: theme.textTheme.bodyMedium?.color,
+                              Text(
+                                currentNodeType != null
+                                    ? 'Click to upload for ${currentNodeType.name.toUpperCase()}'
+                                    : 'Click to upload',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  color: theme.textTheme.bodyMedium?.color,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
+            ] else if (Platform.isWindows) ...[
+              currentNodeType == null
+                  ? information(context)
+                  : Container(
+                      height: 120,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: theme.dividerColor,
+                          style: BorderStyle.solid,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            LucideIcons.uploadCloud,
+                            size: 32,
+                            color: theme.textTheme.bodyMedium?.color,
+                          ),
+                          const SizedBox(height: 8),
+
+                          Text(
+                            currentNodeType != null
+                                ? 'Click to upload for ${currentNodeType.name.toUpperCase()}'
+                                : 'Click to upload',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: theme.textTheme.bodyMedium?.color,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
             ] else if (Platform.isLinux)
               ...[]
             else if (Platform.isMacOS)
@@ -470,4 +465,17 @@ class _DeploymentInputSectionState
       ),
     );
   }
+}
+
+Widget information(BuildContext context) {
+  final theme = Theme.of(context);
+  return Container(
+    height: 480, // Default approximate height of 20 lines text field
+    decoration: BoxDecoration(
+      color: theme.cardColor,
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: theme.dividerColor),
+    ),
+    child: const SelectNodeAnimation(),
+  );
 }
