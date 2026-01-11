@@ -76,7 +76,18 @@ class _DeploymentInputSectionState
                   onPressed:
                       state.selectedCount > 0 &&
                           state.status != DeploymentStatus.running
-                      ? notifier.executeDeployment
+                      ? () async {
+                          final error = await notifier.executeDeployment();
+                          if (error != null && context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(error),
+                                backgroundColor: Colors.red,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        }
                       : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(

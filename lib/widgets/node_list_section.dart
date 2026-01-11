@@ -26,16 +26,6 @@ class NodeListSection extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Target Nodes Header removed
-          // const SizedBox(height: 8),
-          // Text(
-          //   'Select nodes for deployment',
-          //   style: GoogleFonts.inter(
-          //     fontSize: 14,
-          //     color: theme.textTheme.bodyMedium?.color,
-          //   ),
-          // ),
-          // const SizedBox(height: 20),
           const RegionalSelector(),
           if (state.selectedCount > 0) ...[
             const SizedBox(height: 12),

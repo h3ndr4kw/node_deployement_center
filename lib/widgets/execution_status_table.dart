@@ -136,12 +136,13 @@ class ExecutionStatusTable extends ConsumerWidget {
                       color: theme.textTheme.bodyMedium?.color,
                     ),
                     columns: const [
-                      DataColumn(label: Text('NODE NAME')),
-                      DataColumn(label: Text('IP ADDRESS')),
+                      DataColumn(label: Text('NODE')),
+                      DataColumn(label: Text('IP')),
                       DataColumn(label: Text('AREA')),
-                      DataColumn(label: Text('NODE TYPE')),
+                      DataColumn(label: Text('TYPE')),
+                      DataColumn(label: Text('DATE')),
+                      DataColumn(label: Text('LOG')),
                       DataColumn(label: Text('STATUS')),
-                      DataColumn(label: Text('DATE EXECUTION')),
                     ],
                     rows: selectedNodes.map((node) {
                       return DataRow(
@@ -158,9 +159,6 @@ class ExecutionStatusTable extends ConsumerWidget {
                           DataCell(Text(node.area.name.toUpperCase())),
                           DataCell(Text(node.type.name.toUpperCase())),
                           DataCell(
-                            _buildStatusBadge(node.executionStatus, isDark),
-                          ),
-                          DataCell(
                             Text(
                               node.executionDate != null
                                   ? DateFormat(
@@ -168,6 +166,17 @@ class ExecutionStatusTable extends ConsumerWidget {
                                     ).format(node.executionDate!)
                                   : '-',
                             ),
+                          ),
+                          DataCell(
+                            Text(
+                              '${node.name}_log',
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            _buildStatusBadge(node.executionStatus, isDark),
                           ),
                         ],
                       );

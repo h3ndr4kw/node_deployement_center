@@ -225,9 +225,24 @@ class DeploymentNotifier extends Notifier<DeploymentState> {
     );
   }
 
-  Future<void> executeDeployment() async {
-    if (state.status == DeploymentStatus.running) return;
-    if (state.selectedCount == 0) return;
+  Future<String?> executeDeployment() async {
+    if (state.status == DeploymentStatus.running) return null;
+    if (state.selectedCount == 0) return 'No nodes selected';
+
+    // Validate inputs for all selected node types
+    for (final type in state.selectedNodeTypes) {
+      if (state.method == DeploymentMethod.command) {
+        final command = state.getCommandForType(type);
+        if (command.trim().isEmpty) {
+          return 'Command is empty for ${type.name.toUpperCase()}';
+        }
+      } else {
+        final file = state.getFileForType(type);
+        if (file == null || file.isEmpty) {
+          return 'No file selected for ${type.name.toUpperCase()}';
+        }
+      }
+    }
 
     state = state.copyWith(status: DeploymentStatus.running);
     await Future.delayed(const Duration(seconds: 2)); // Mock execution
@@ -236,6 +251,8 @@ class DeploymentNotifier extends Notifier<DeploymentState> {
     // Reset to idle after a moment
     await Future.delayed(const Duration(seconds: 2));
     state = state.copyWith(status: DeploymentStatus.idle);
+
+    return null;
   }
 }
 

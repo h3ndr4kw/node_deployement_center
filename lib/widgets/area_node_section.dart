@@ -29,41 +29,48 @@ class AreaNodeSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: EdgeInsets.symmetric(
-              horizontal: isAreaSelected ? 12 : 0,
-              vertical: isAreaSelected ? 6 : 0,
-            ),
-            decoration: BoxDecoration(
-              color: isAreaSelected ? areaColor : Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: isAreaSelected
-                  ? [
-                      BoxShadow(
-                        color: areaColor.withValues(alpha: 0.3),
-                        blurRadius: 4,
-                        spreadRadius: 1,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Text(
-              title,
-              style: GoogleFonts.inter(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: isAreaSelected
-                    ? Colors.white
-                    : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                letterSpacing: 1.2,
+        const SizedBox(height: 32),
+        Row(
+          mainAxisAlignment: .center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isAreaSelected ? 12 : 0,
+                  vertical: isAreaSelected ? 6 : 0,
+                ),
+                decoration: BoxDecoration(
+                  color: isAreaSelected ? areaColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: isAreaSelected
+                      ? [
+                          BoxShadow(
+                            color: areaColor.withValues(alpha: 0.3),
+                            blurRadius: 4,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: isAreaSelected
+                        ? Colors.white
+                        : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                    letterSpacing: 1.2,
+                  ),
+                ),
               ),
             ),
-          ),
+          ],
         ),
+        const SizedBox(height: 8),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -83,6 +90,7 @@ class AreaNodeSection extends StatelessWidget {
             );
           },
         ),
+
         const SizedBox(height: 16),
       ],
     );

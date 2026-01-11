@@ -21,60 +21,53 @@ class HomeScreen extends ConsumerWidget {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Main Content Area
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    // Responsive layout: Column on small screens, Row on large
-                    if (constraints.maxWidth < 800) {
-                      return Column(
-                        children: [
-                          _buildExecutionCard(context, state, notifier),
-                          const SizedBox(height: 24),
-                          DeploymentInputSection(),
-                          const SizedBox(height: 24),
-                          const ExecutionStatusTable(),
-                          const SizedBox(height: 24),
-                          const SizedBox(height: 500, child: NodeListSection()),
-                        ],
-                      );
-                    } else {
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Left Column
-                          Expanded(
-                            flex: 3,
-                            child: Column(
-                              children: [
-                                // _buildExecutionCard(context, state, notifier),
-                                // const SizedBox(height: 8),
-                                DeploymentInputSection(),
-                                const SizedBox(height: 16),
-                                const ExecutionStatusTable(),
-                              ],
-                            ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              // Responsive layout: Column on small screens, Row on large
+              if (constraints.maxWidth < 800) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    children: [
+                      _buildExecutionCard(context, state, notifier),
+                      const SizedBox(height: 24),
+                      DeploymentInputSection(),
+                      const SizedBox(height: 24),
+                      const ExecutionStatusTable(),
+                      const SizedBox(height: 24),
+                      const SizedBox(height: 500, child: NodeListSection()),
+                    ],
+                  ),
+                );
+              } else {
+                return Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Left Column
+                      Expanded(
+                        flex: 3,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              // _buildExecutionCard(context, state, notifier),
+                              // const SizedBox(height: 8),
+                              DeploymentInputSection(),
+                              const SizedBox(height: 16),
+                              const ExecutionStatusTable(),
+                            ],
                           ),
-                          const SizedBox(width: 24),
-                          // Right Column
-                          Expanded(
-                            flex: 2,
-                            child: SizedBox(
-                              height: 800, // Fixed height for scrolling list
-                              child: const NodeListSection(),
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-                  },
-                ),
-              ],
-            ),
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      // Right Column
+                      Expanded(flex: 2, child: const NodeListSection()),
+                    ],
+                  ),
+                );
+              }
+            },
           ),
 
           Positioned(
@@ -117,7 +110,18 @@ class HomeScreen extends ConsumerWidget {
             onPressed:
                 state.selectedCount > 0 &&
                     state.status != DeploymentStatus.running
-                ? notifier.executeDeployment
+                ? () async {
+                    final error = await notifier.executeDeployment();
+                    if (error != null && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(error),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  }
                 : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color.fromARGB(
