@@ -1,7 +1,10 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:node_deployement/utils/node_builder.dart';
 import '../models/node_model.dart';
+import '../services/api_service.dart';
 import '../services/config_service.dart';
 
 enum DeploymentMethod { command, file }
@@ -18,6 +21,9 @@ class DeploymentState {
   final Map<NodeType, String> commandsByNodeType;
   final Map<NodeType, String?> filesByNodeType;
   final NodeType? selectedNodeType;
+  final String? sessionId;
+  final List<String> deploymentLogs;
+  final Map<String, String> nodeStatuses; // node_id -> status string
 
   DeploymentState({
     required this.nodes,
@@ -29,6 +35,9 @@ class DeploymentState {
     this.commandsByNodeType = const {},
     this.filesByNodeType = const {},
     this.selectedNodeType,
+    this.sessionId,
+    this.deploymentLogs = const [],
+    this.nodeStatuses = const {},
   });
 
   int get selectedCount => nodes.where((n) => n.isSelected).length;
@@ -66,6 +75,9 @@ class DeploymentState {
     Map<NodeType, String?>? filesByNodeType,
     NodeType? selectedNodeType,
     bool clearSelectedNodeType = false,
+    String? sessionId,
+    List<String>? deploymentLogs,
+    Map<String, String>? nodeStatuses,
   }) {
     return DeploymentState(
       nodes: nodes ?? this.nodes,
@@ -79,6 +91,9 @@ class DeploymentState {
       selectedNodeType: clearSelectedNodeType
           ? null
           : (selectedNodeType ?? this.selectedNodeType),
+      sessionId: sessionId ?? this.sessionId,
+      deploymentLogs: deploymentLogs ?? this.deploymentLogs,
+      nodeStatuses: nodeStatuses ?? this.nodeStatuses,
     );
   }
 }
@@ -225,6 +240,15 @@ class DeploymentNotifier extends Notifier<DeploymentState> {
     );
   }
 
+  void resetToIdle() {
+    state = state.copyWith(
+      status: DeploymentStatus.idle,
+      sessionId: null,
+      deploymentLogs: [],
+      nodeStatuses: {},
+    );
+  }
+
   Future<String?> executeDeployment() async {
     if (state.status == DeploymentStatus.running) return null;
     if (state.selectedCount == 0) return 'No nodes selected';
@@ -244,15 +268,175 @@ class DeploymentNotifier extends Notifier<DeploymentState> {
       }
     }
 
-    state = state.copyWith(status: DeploymentStatus.running);
-    await Future.delayed(const Duration(seconds: 2)); // Mock execution
-    state = state.copyWith(status: DeploymentStatus.success);
+    state = state.copyWith(
+      status: DeploymentStatus.running,
+      deploymentLogs: [],
+      nodeStatuses: {},
+    );
 
-    // Reset to idle after a moment
-    await Future.delayed(const Duration(seconds: 2));
-    state = state.copyWith(status: DeploymentStatus.idle);
+    try {
+      // Collect selected node IDs
+      final selectedNodes = state.nodes.where((n) => n.isSelected).toList();
+      final nodeIds = selectedNodes.map((n) => n.id).toList();
 
-    return null;
+      // Collect all commands (from all node types)
+      final List<String> allCommands = [];
+      for (final type in state.selectedNodeTypes) {
+        final command = state.getCommandForType(type);
+        if (command.trim().isNotEmpty) {
+          // Split multi-line commands into individual lines
+          allCommands.addAll(
+            command.split('\n').where((line) => line.trim().isNotEmpty),
+          );
+        }
+      }
+
+      if (allCommands.isEmpty) {
+        state = state.copyWith(status: DeploymentStatus.idle);
+        return 'No commands to execute';
+      }
+
+      // Update node statuses to 'login'
+      final updatedNodes = state.nodes.map((node) {
+        if (node.isSelected) {
+          return node.copyWith(executionStatus: NodeExecutionStatus.login);
+        }
+        return node;
+      }).toList();
+      state = state.copyWith(nodes: updatedNodes);
+
+      // Call backend API
+      Map<String, dynamic> response;
+      if (allCommands.length == 1) {
+        response = await ApiService.deployCommand(
+          nodeIds: nodeIds,
+          command: allCommands.first,
+        );
+      } else {
+        response = await ApiService.deployCommands(
+          nodeIds: nodeIds,
+          commands: allCommands,
+        );
+      }
+
+      final sessionId = response['session_id'] as String;
+      state = state.copyWith(sessionId: sessionId);
+
+      // Connect WebSocket for real-time updates
+      _connectWebSocket(sessionId);
+
+      return null; // Success - deployment started
+    } catch (e) {
+      print('Deployment error: $e');
+      state = state.copyWith(status: DeploymentStatus.failure);
+      return 'Deployment failed: $e';
+    }
+  }
+
+  StreamSubscription? _wsSubscription;
+
+  void _connectWebSocket(String sessionId) {
+    final channel = ApiService.connectWebSocket(sessionId);
+
+    _wsSubscription?.cancel();
+    _wsSubscription = channel.stream.listen(
+      (message) {
+        try {
+          final data = json.decode(message as String) as Map<String, dynamic>;
+          final nodeId = data['node_id'] as String? ?? '';
+          final line = data['line'] as String? ?? '';
+          final status = data['status'] as String? ?? 'running';
+
+          // Append to deployment logs
+          final logs = List<String>.from(state.deploymentLogs);
+          if (line.isNotEmpty) {
+            logs.add('[$nodeId] $line');
+          }
+
+          // Update node statuses
+          final nodeStatuses = Map<String, String>.from(state.nodeStatuses);
+          if (nodeId != '__system__') {
+            nodeStatuses[nodeId] = status;
+          }
+
+          // Update node execution status based on WebSocket status
+          final updatedNodes = state.nodes.map((node) {
+            if (node.id == nodeId) {
+              if (status == 'done') {
+                return node.copyWith(
+                  executionStatus: NodeExecutionStatus.done,
+                  executionDate: DateTime.now(),
+                );
+              } else if (status == 'error') {
+                return node.copyWith(
+                  executionStatus: NodeExecutionStatus.done,
+                  executionDate: DateTime.now(),
+                );
+              } else if (line.contains('Executing:')) {
+                return node.copyWith(
+                  executionStatus: NodeExecutionStatus.loadScript,
+                );
+              } else if (line.contains('Connected to') &&
+                  line.contains('successfully')) {
+                return node.copyWith(
+                  executionStatus: NodeExecutionStatus.checkUser,
+                );
+              }
+            }
+            return node;
+          }).toList();
+
+          // Check if deployment completed
+          if (nodeId == '__system__' &&
+              (status == 'completed' || status == 'failed')) {
+            state = state.copyWith(
+              nodes: updatedNodes,
+              deploymentLogs: logs,
+              nodeStatuses: nodeStatuses,
+              status: status == 'completed'
+                  ? DeploymentStatus.success
+                  : DeploymentStatus.failure,
+            );
+            _wsSubscription?.cancel();
+          } else {
+            state = state.copyWith(
+              nodes: updatedNodes,
+              deploymentLogs: logs,
+              nodeStatuses: nodeStatuses,
+            );
+          }
+        } catch (e) {
+          print('WebSocket parse error: $e');
+        }
+      },
+      onError: (error) {
+        print('WebSocket error: $error');
+        state = state.copyWith(status: DeploymentStatus.failure);
+      },
+      onDone: () {
+        print('WebSocket connection closed');
+        if (state.status == DeploymentStatus.running) {
+          // If still running when WS closes, check status via REST
+          _checkFinalStatus();
+        }
+      },
+    );
+  }
+
+  Future<void> _checkFinalStatus() async {
+    if (state.sessionId == null) return;
+    try {
+      final result =
+          await ApiService.getDeploymentStatus(state.sessionId!);
+      final status = result['status'] as String;
+      state = state.copyWith(
+        status: status == 'completed'
+            ? DeploymentStatus.success
+            : DeploymentStatus.failure,
+      );
+    } catch (_) {
+      state = state.copyWith(status: DeploymentStatus.failure);
+    }
   }
 }
 

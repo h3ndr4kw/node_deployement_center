@@ -61,7 +61,7 @@ class _DeploymentInputSectionState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header Row with Tabs and Method Toggle
-          if (selectedNodeTypes.isNotEmpty) ...[
+          if (state.status == DeploymentStatus.idle && selectedNodeTypes.isNotEmpty) ...[
             Row(
               children: [
                 _buildNodeTypeTabs(
@@ -131,8 +131,10 @@ class _DeploymentInputSectionState
             const SizedBox(height: 16),
           ],
 
-          // Command or File input based on method
-          if (state.method == DeploymentMethod.command) ...[
+          // Display Logs or Input
+          if (state.status != DeploymentStatus.idle) ...[
+            _buildLogViewer(context, state, notifier),
+          ] else if (state.method == DeploymentMethod.command) ...[
             currentNodeType == null
                 ? information(context)
                 : TextFormField(
@@ -282,6 +284,101 @@ class _DeploymentInputSectionState
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildLogViewer(
+    BuildContext context,
+    DeploymentState state,
+    DeploymentNotifier notifier,
+  ) {
+    final theme = Theme.of(context);
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Deployment Console',
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: theme.textTheme.displayLarge?.color,
+              ),
+            ),
+            if (state.status == DeploymentStatus.success ||
+                state.status == DeploymentStatus.failure)
+              ElevatedButton.icon(
+                onPressed: () {
+                  // Re-initialize state to idle
+                  ref.read(deploymentProvider.notifier).resetToIdle();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                  foregroundColor: theme.textTheme.bodyMedium?.color,
+                ),
+                icon: const Icon(LucideIcons.refreshCw, size: 16),
+                label: const Text('New Deployment'),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          height: 480, // Match the height of the command input
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E), // Dark VSCode-like background
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: theme.dividerColor),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: state.deploymentLogs.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Waiting for output...',
+                        style: GoogleFonts.sourceCodePro(
+                          color: Colors.grey[500],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: state.deploymentLogs.length,
+                  itemBuilder: (context, index) {
+                    final log = state.deploymentLogs[index];
+                    Color textColor = Colors.grey[300]!;
+                    
+                    if (log.contains('error') || log.contains('failed')) {
+                      textColor = Colors.red[300]!;
+                    } else if (log.contains('successfully')) {
+                      textColor = Colors.green[300]!;
+                    } else if (log.startsWith('[__system__]')) {
+                      textColor = Colors.blue[300]!;
+                    }
+                    
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 4.0),
+                      child: Text(
+                        log.replaceFirst('[__system__] ', ''),
+                        style: GoogleFonts.sourceCodePro(
+                          color: textColor,
+                          fontSize: 13,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 

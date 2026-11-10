@@ -1,0 +1,36 @@
+# ============================================================
+# SSH Configuration for PISC Node Deployment
+# ============================================================
+
+[jump_host]
+ip = "10.52.19.24"                    # Jump Server / Network Management IP
+port = 22
+username = "vluckyles"
+password = "Sukses123#"
+# ssh_key_path = ""                # Optional: path to SSH private key
+
+[default_node]
+username = "22344546"
+password = "AR!09/md"
+# ssh_key_path = ""                # Optional: path to SSH private key
+
+[ssh]
+prompt_regex = '[\w\-\.]+[#>$%]\s*$'   # Regex to detect shell prompt ready
+command_timeout = 60                        # Seconds to wait for command output
+login_timeout = 30                          # Seconds to wait for SSH login
+read_delay = 0.5                            # Delay between sending commands (seconds)
+buffer_size = 65535                         # SSH read buffer size
+
+# ============================================================
+# Per-node credential overrides
+# Use [node_overrides."NODE_NAME"] to override credentials
+# ============================================================
+
+[node_overrides.GGTBE2]
+username = "fredykar"
+password = "telkomsel234"
+
+# Example for another node:
+# [node_overrides.VGGMDN1]
+# username = "22344546"
+# password = "AR!09/md"

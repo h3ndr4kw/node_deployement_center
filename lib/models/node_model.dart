@@ -20,7 +20,14 @@ enum NodeExecutionStatus {
   validate,
   commit,
   done,
+  failed,
 }
+
+enum ExecutionMethod { standard, broadcast }
+
+enum DeploymentMode { quick, schedule }
+
+enum NodeSource { all, byu, nonByu }
 
 class Node {
   final String id;
@@ -66,6 +73,53 @@ class Node {
       isSelected: isSelected ?? this.isSelected,
       executionStatus: executionStatus ?? this.executionStatus,
       executionDate: executionDate ?? this.executionDate,
+    );
+  }
+}
+
+class ScheduleEntry {
+  final String id;
+  final String activityName;
+  final String scheduleType; // "onetime" | "recurring"
+  final String date;
+  final String time;
+  final String? repeatMode; // "daily" | "weekly" | "monthly"
+  final String? repeatDay;
+  final List<String> nodeIds;
+  final List<String> commands;
+  final String executionMethod;
+  final String createdAt;
+  final String status; // "waiting" | "running" | "success" | "failed" | "cancelled"
+
+  ScheduleEntry({
+    required this.id,
+    required this.activityName,
+    required this.scheduleType,
+    required this.date,
+    required this.time,
+    this.repeatMode,
+    this.repeatDay,
+    required this.nodeIds,
+    required this.commands,
+    required this.executionMethod,
+    required this.createdAt,
+    required this.status,
+  });
+
+  factory ScheduleEntry.fromJson(Map<String, dynamic> json) {
+    return ScheduleEntry(
+      id: json['id'] as String,
+      activityName: json['activity_name'] as String,
+      scheduleType: json['schedule_type'] as String,
+      date: json['date'] as String,
+      time: json['time'] as String,
+      repeatMode: json['repeat_mode'] as String?,
+      repeatDay: json['repeat_day'] as String?,
+      nodeIds: List<String>.from(json['node_ids']),
+      commands: List<String>.from(json['commands']),
+      executionMethod: json['execution_method'] as String? ?? 'broadcast',
+      createdAt: json['created_at'] as String,
+      status: json['status'] as String,
     );
   }
 }
